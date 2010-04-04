@@ -1,0 +1,6 @@
+\beamer@endinputifotherversion {3.07pt}
+\beamer@sectionintoc {1}{统计语言模型}{3}{0}{1}
+\beamer@sectionintoc {2}{内容模型估计算法}{11}{0}{2}
+\beamer@sectionintoc {3}{结构模型估计}{18}{0}{3}
+\beamer@sectionintoc {4}{.GOV、Lemur及Baseline}{21}{0}{4}
+\beamer@sectionintoc {5}{附录}{27}{0}{5}

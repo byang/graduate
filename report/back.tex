@@ -1,0 +1,83 @@
+\begin{frame}
+\frametitle{选题依据-统计语言模型}
+{\Large 估计$p(d)$}
+
+链接分析
+\begin{itemize}
+\item Hyperlink-Induced Topic Search
+\[
+A(p) = \sum_{q:q \to p}{H(q)} \; and \; H(p) = \sum_{q:p \to q}{A(q)}
+\]
+\item PageRank
+\[
+PR(i) = (1-d)\sum_{j:j \to i}{\frac{PR(j)}{O(j)}} + d\frac{1}{N}
+\]
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{选题依据-链接分析}
+{\Large 基于主题链接分析}
+\begin{itemize}
+\item Topic-Sensitive PageRank
+\[
+TSPR(j) = (1-d)\sum_{i:i \to k}{\frac{TSPR_j(i)}{O(i)}} + \left\{
+\begin{array}{ll}
+b\frac{1}{{\tau}_j} & \textrm{if $k \in {\tau}_j$}\\
+0 & \textrm{if $k \notin {\tau}_j$}
+\end{array} \right.
+\]
+\item The intelligent surfer
+\[
+IS_q(j) = d\frac{r(q,j)}{\sum_{k \in W}{r(q,k)}} + (1-d)\sum_{i:i \to j}{IS_q(i)\frac{r(q,j)}{\sum_{l:i \to l}{r(q,l)}}}
+\]
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{选题依据-链接分析}
+{\Large 存在问题}
+\begin{itemize}
+\item 啥问题，啥问题
+\item 啥问题，啥问题
+\item 啥问题，啥问题
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{选题依据-研究现状}
+{\Large 语言模型}
+\[
+p(d|q) \propto p(q|d)p(d)
+\]
+
+假设$p(d)$为统一的先验概率，为$p(q|d)$建模
+\[
+p(q|d) = \prod_{i=1}^{n}{p(q_i|d)}
+\]
+$q_i$为query中的第i个单词
+
+Smoothing是语言模型理论研究的重点
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{选题依据-现有方法的局限}
+{\Large 语言模型}
+\begin{itemize}
+\item 将网页这种超文本视为纯文本考虑
+\item 只采用一个最一般的数据集为不出现在文档中的单词做平滑
+\end{itemize}
+
+{\Large 链接分析}
+\begin{itemize}
+\item 没有加入主题信息得出的网页静态排序是不公正
+\item 已有基于主题的链接分析方法，必须事先选定主题，有所局限
+\end{itemize}
+
+\end{frame}

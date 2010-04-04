@@ -1,0 +1,460 @@
+\documentclass[CJK,compress,t]{beamer}
+\usepackage{CJK}
+\usepackage{float}
+
+\usetheme{umbc4}
+
+\setbeamerfont{documenttitle}{size=\Huge}
+\setbeamerfont{footnote}{size=\huge}
+
+\begin{document}
+\begin{CJK}{GBK}{hei}
+\baselineskip=16pt
+
+\title{ 基于改进语言模型的网页排序问题研究 }
+\author{ 杨波 }
+\institute{
+\begin{tabular}{r @{：} l}
+指导教师 & 黄亚楼教授 \\
+研究方向 & 信息检索 \\
+\end{tabular}
+}
+\date{\today}
+
+
+\setfootline{ {Intellegent Information Processing Lab} \hfill  \insertframenumber/\inserttotalframenumber}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+\begin{frame}
+\frametitle{概要}
+\begin{block}
+{\LARGE \tableofcontents}
+\end{block}
+\end{frame}
+
+
+\section{统计语言模型}
+\begin{frame}
+\frametitle{概要}
+\begin{block}
+{\LARGE \tableofcontents[currentsection]}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{统计语言模型}
+{\Large 统计语言模型的历史}
+\begin{itemize}
+\item 来自speech recognization领域
+\item 用来估计语音序列中下一个词的概率
+\[
+p(w|h_1, h_2, \ldots, h_n)
+\]
+\end{itemize}
+\pause
+{\Large basic n-gram}
+\[
+p(w_i|w_{i-n}...w_{i-1}) = \frac{C(w_{i-n}...w_{i-1}, w_i)}{C(w_{i-n}...w_{i-1})}
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{统计语言模型}
+{\Large 语言模型的历史}
+\begin{itemize}
+\item topic-based n-gram
+\[
+P(w_i|w_{i-n+1}...w_{i-1}) = \sum_{Topic=i}{\lambda_iP_i(w_i|w_{i-n+1}...w_{i-1})}
+\]
+\item skip-based n-gram
+\[
+P_{Mixed}(w_i|w_{i-n+1}...w_{i-1}) = \sum^{n-1}_{k=1}{\lambda_k \times P(w_i | w_{i-k})}
+\]
+\item 指数级语言模型
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{统计语言模型}
+
+{\Large 信息检索中的语言模型}
+\begin{itemize}
+\item 查询产生相应文档的概率
+\begin{center}
+$p(d\ is\ relevent|q) = \frac{p(q|d\ is\ relevent)p(d\ is\ relevent)}{p(q)}$
+\end{center}
+\item 信息检索中的语言模型
+\begin{center}
+$p(d|q) \propto p(q|d)p(d)$
+\end{center}
+\begin{center}\footnotesize 其中d是待排序文档, q用户的查询词, 返回的文档以$p(d|q)$大小排序\end{center}
+\item 关键在于估计$p(q|d)$和$p(d)$
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{统计语言模型}
+{\Large 估计$p(q|d)$}
+\[
+log \; p(q|d) = \sum_{i=1}^{n}{log \; p(w_{i}|d)}
+\]
+\begin{center}\footnotesize 其中$w_i$为用户查询中的单词\end{center}
+
+{\Large 计算$p(w_i|d)$}
+\[
+p(w|d) = \frac{c(w;d)}{\sum_{w^{'} \in V}{c(w^{'};d)}}
+\]
+\begin{center}\footnotesize 其中$c(w;d)$为文档d中出现单词w的次数；$V$为词汇表\end{center}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{统计语言模型}
+{\Large 对未见词进行估计}
+\begin{itemize}
+\item 未见词会造成0概率问题
+
+\item 通过使用候选数据集做backoff，即在网页中有未出现的查询词的时候，使用平滑数据集中的词频代替网页的词频
+
+\item 通过减少文档中可见词的概率来平滑语言模型
+    \begin{itemize}
+    \item The Jelinek-Mercer method
+    %\[
+    %        p_\lambda(w|d) = (1-\lambda)p(w|d)+\lambda p(w|C)
+    %\]
+    \item Bayesian smoothing using Dirichlet priors
+    \item Absolute discounting
+    \item Two-stage Smoothing model
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{统计语言模型}
+{\Large 语言模型的分隔}
+\[
+p(d|q) = p(q|d)p(d)
+\]
+\begin{itemize}
+\item $p(q|d)$和query词相关，称为\underline{内容模型}
+\item $p(d)$和query词无关，称为\underline{结构模型}
+\end{itemize}
+\end{frame}
+
+
+\section{内容模型估计算法}
+\begin{frame}
+\frametitle{概要}
+\begin{block}
+{\LARGE \tableofcontents[currentsection]}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{多维多元组内容生成算法}
+{\Large 多维多元组}
+\begin{itemize}
+\item 同时考虑1元组、2元组和3元组
+\item 为大的元组赋予较大的权重
+
+\[
+s(q|d) = \alpha_1 p(q_1|d) + \alpha_2 p(q_2|d) + ... + \alpha_n p(q_n|d)
+\]
+\begin{center}
+\footnotesize 其中$q_1$\ldots$q_n$分别表示查询中的1元组到n元组，$\alpha_1$\ldots$\alpha_n$
+为相应的权重
+\end{center}
+\end{itemize}
+\pause
+{\Large $\alpha_i$的估计问题}
+\begin{itemize}
+\item 相应的权重如何计算，怎么从训练样本中估计
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{多维多元组内容生成算法}
+{\Large 估计$\alpha_i$}
+\begin{table}
+\caption{\scriptsize 只考虑1-gram时，被错误计算的文档的个数}
+\begin{center}
+\begin{tabular}{ccc}
+
+数据集 & 平均文档个数 & 百分比 \\
+\hline
+HP2004 & 8998 & 12.1\% \\
+NP2004 & 5603 & 7.6\% \\
+TD2004 & 12563 & 17.2\% \\
+\end{tabular}
+\end{center}
+\end{table}
+\begin{table}
+\caption{\scriptsize 考虑2-gram时，被错误计算的文档的个数}
+\begin{center}
+\begin{tabular}{ccc}
+
+数据集 & 平均文档个数 & 百分比 \\
+\hline
+HP2004 & 4006 & 5.4\% \\
+NP2004 & 2861 & 3.9\% \\
+TD2004 & 3674 & 5.1\% \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{多维多元组内容生成算法}
+{\Large 估计$\alpha_i$-续}
+
+\begin{table}
+\caption{\scriptsize 考虑3-gram时，被错误计算的文档的个数}
+\begin{center}
+\begin{tabular}{ccc}
+
+数据集 & 平均文档个数 & 百分比 \\
+\hline
+HP2004 & 246 & 0.3\% \\
+NP2004 & 351 & 0.4\% \\
+TD2004 & 13 & 0.02\% \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}
+\caption{\scriptsize 利用错误文档百分比的比例估计$\alpha_i$}
+\begin{center}
+\begin{tabular}{cccc}
+
+数据集 & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ \\
+\hline
+HP2004 & 1 & $2.2=12.1\div 5.4$  & $40.3=12.1\div 0.3$ \\
+NP2004 & 1 & $1.9=7.6\div 3.9$   & $19.0=7.6\div 0.4$ \\
+TD2004 & 1 & $3.4=17.2\div 5.1$  & $860.0=17.2\div 0.02$ \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{多层数据集平滑算法}
+{\Large URL的意义}
+\begin{center}
+http://host.part/directory/part/file-name
+\end{center}
+{\Large 数据集定义}
+\begin{itemize}
+\item 目录数据集
+
+URL中目录部分相同的文档，所组成的数据集，如:
+
+http://www.nasa.gov/missions/future/  下的所有文档
+
+\item 站点数据集
+
+属于同一个站点的文档，所组成的数据集
+
+\item 互联网数据集
+
+整个.GOV所有文档，组成的数据集
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{多层数据集平滑算法}
+{\Large 线性插值平滑}
+\[
+s(w|d) = (1-\lambda-\mu-\omega)p(w|d) + \lambda p(w|D) + \mu p(w|S) + \omega p(w|C)
+\]
+\begin{center}
+\footnotesize
+其中，D为当前文档（网页）所在的目录中所有单词组成的数据集，S为对应的站点的数据集，C为整个互联网的数据集
+\end{center}
+\end{frame}
+
+\section{结构模型估计}
+\begin{frame}
+\frametitle{概要}
+\begin{block}
+{\LARGE \tableofcontents[currentsection]}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{结构模型估计}
+{\Large 各种先验概率之间的关系}
+\begin{figure}
+\includegraphics[width=2.5in, height=2.5in]{images/structure.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{结构模型估计}
+{\Large 贝叶斯信念网络估计}
+
+假设：每一个先验概率特征为$x_i$
+
+已知：
+
+\begin{itemize}
+\item $p(x_i|d)$，即相关文档出现特征$x_i$的概率
+\item $p(x_i|x_j)$，即不同的特征i,j统计不独立时，二者之间的条件概率
+\end{itemize}
+
+求解：
+
+\begin{itemize}
+\item $p(d|x_1, x_2, ..., x_n)$
+\end{itemize}
+\end{frame}
+
+\section{.GOV、Lemur及Baseline}
+\begin{frame}
+\frametitle{概要}
+\begin{block}
+{\LARGE \tableofcontents[currentsection]}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{.GOV文本数据集}
+\begin{itemize}
+\item Document: 100万+
+\item Words: 900万+
+\item Unique Words: 16万+
+\item Queries: Trec Web Track 2004 3个task(td,np,hp)，575
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Lemur}
+{\Large 主要功能}
+\begin{itemize}
+\item 提供两种索引结果，能对大规模TREC格式的文档进行索引
+\item 提供TF*IDF, BM25, Basic LM和常用的三种平滑算法的实现
+\item 通过C++扩展平台，可以实现新的算法
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Baseline}
+{\Large Name Page Finding}
+\begin{figure}
+\includegraphics[width=1.5in, height=1.5in]{images/np-precision-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/np-map-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/np-ndcg-baseline.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Baseline}
+{\Large Home Page Finding}
+\begin{figure}
+\includegraphics[width=1.5in, height=1.5in]{images/hp-precision-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/hp-map-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/hp-ndcg-baseline.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Baseline}
+{\Large Topic Distillation}
+\begin{figure}
+\includegraphics[width=1.5in, height=1.5in]{images/td-precision-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/td-map-baseline.png}
+\includegraphics[width=1.5in, height=1.5in]{images/td-ndcg-baseline.png}
+\end{figure}
+\end{frame}
+
+\section{附录}
+\begin{frame}[allowframebreaks]{参考文献}
+\begin{thebibliography}{10}
+\tiny
+\bibitem{}
+[C. Zhai and J. Lafferty]
+\newblock A Study of Smoothing Methods for Language Models Applied to Information Retrieval
+\newblock \emph{ACM Treansaction of Information System}, 2004.
+\bibitem{}
+[Miller D. H.]
+\newblock A hidden Markov model information retrieval system
+\newblock \emph{Proceedings of the ACM SIGIR}, 1999.
+\bibitem{}
+[C. Zhai and J. Lafferty]
+\newblock A Study of Smoothing Methods for Language Models Applied to Information Retrieval
+\newblock \emph{ACM Transaction of Information System}, 2004.
+\bibitem{}
+[Tom Mitchell]
+\newblock Machine Learning
+\newblock \emph{McGraw Hill}, 1997.
+\bibitem{}
+[Baeza-Yates, R. and Ribeiro-Neto B.]
+\newblock Modern Information Retrieval
+\newblock \emph{New York, NY, USA: Addition Wesley}, 1999.
+\bibitem{}
+[Lancaster F. W.]
+\newblock Information retrieval systems: characteristics, testing and evaluation
+\newblock \emph{2nd Ed., New York: John Wiely and Sons}, 1979.
+\bibitem{}
+[Salton, G., Wong, A., and Yang, C. S.]
+\newblock A vector space model for automatic indexing
+\newblock \emph{Communications of the ACM}, 1975.
+\bibitem{}
+[Robertson, S. E.]
+\newblock Okapi in TREC3
+\newblock \emph{NIST Special Publication}, 1994.
+\bibitem{}
+[J. Lafferty and C. Zhai]
+\newblock Document Language Models, Query Models, and Risk Minimization for Information Retrieval
+\newblock \emph{Proceedings of the 24th annual international ACM SIGIR conference}, 2001.
+\bibitem{}
+[Freund, Y., Iyer, R., Schapire, R., and Singer, Y.]
+\newblock An efficient boosting algorithm for combining preferences
+\newblock \emph{Journal of Machine Learning}, 2004.
+\bibitem{}
+[Nallapati, R.]
+\newblock Discriminative Models for Information Retrieval
+\newblock \emph{Proceedings of the27th Annual International ACM SIGIR Conference}, 2004.
+\bibitem{}
+[N. Craswell, D. Hawking, R. Wilkinson, and M. Wu.]
+\newblock Overview of the TREC 2003 web track
+\newblock \emph{TREC}, 2003.
+\bibitem{}
+[Lemur Project]
+\newblock http://www.lemurproject.org/
+\bibitem{}
+[Tie-Yan Liu, Jun Xu, Tao Qin, Wenying Xiong, and Hang Li]
+\newblock LETOR: Benchmarking "Learning to Rank for Information Retrieval"
+\newblock \emph{SIGIR 2007 Workshop on Learning to Rank for Information Retrieval}, 2007.
+\bibitem{}
+[F. Bimbot, R. Preraccini, E. Levin and B. Atal]
+\newblock Variable-Length Sequence Modeling: Multigrams
+\newblock \emph{IEEE Signal Processing Letter}, 1995.
+\bibitem{}
+[S. Deligne and F. Bimbot]
+\newblock Language modeling by variable length sequences: Theoretical formulation and evaluation of multigrams
+\newblock \emph{Acoustics, Speech and Signal Processing}, 1995.
+\bibitem{}
+[R. Kneser and V. Steinbiss]
+\newblock On the dynamic adaption of stochastic language models
+\newblock \emph{Acoustics, Speech and Signal Processing}, 1993.
+
+\end{thebibliography}
+\end{frame}
+
+\begin{frame}[c]
+\begin{center} \Huge 谢 谢 ! \end{center}
+\end{frame}
+
+\end{CJK}
+\end{document} 

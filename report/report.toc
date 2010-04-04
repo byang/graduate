@@ -1,0 +1,7 @@
+\beamer@endinputifotherversion {3.07pt}
+\beamer@sectionintoc {1}{题目阐述}{3}{0}{1}
+\beamer@sectionintoc {2}{选题依据}{5}{0}{2}
+\beamer@sectionintoc {3}{研究内容}{17}{0}{3}
+\beamer@sectionintoc {4}{研究方法}{20}{0}{4}
+\beamer@sectionintoc {5}{总结与展望}{36}{0}{5}
+\beamer@sectionintoc {6}{附录}{40}{0}{6}
